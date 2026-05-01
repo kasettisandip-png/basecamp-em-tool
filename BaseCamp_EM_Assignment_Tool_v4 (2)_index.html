@@ -1,0 +1,1474 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BaseCamp EM Assignment Tool</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap');
+:root {
+  --bg:#f0f5fc;
+  --surface:#ffffff;
+  --surface2:#f5f8fe;
+  --border:#d0dff5;
+  --border2:#b0c8ee;
+  --accent:#1558c0;
+  --accent2:#0d3d8a;
+  --accent-light:#deeaff;
+  --text:#000000;
+  --text-mid:#1a2840;
+  --text-muted:#4a6080;
+  --green:#0a6640;
+  --green-bg:#e2f5ec;
+  --green-border:#5bc898;
+  --yellow:#8a4800;
+  --yellow-bg:#fff3dc;
+  --yellow-border:#f0c060;
+  --red:#a01010;
+  --red-bg:#fde8e8;
+  --red-border:#e08080;
+  --shadow:0 1px 4px rgba(0,0,0,.08),0 2px 8px rgba(0,0,0,.04);
+  --shadow-md:0 4px 16px rgba(0,0,0,.1);
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);font-size:13.5px;line-height:1.5;-webkit-font-smoothing:antialiased;}
+::-webkit-scrollbar{width:5px;height:5px;}
+::-webkit-scrollbar-track{background:var(--bg);}
+::-webkit-scrollbar-thumb{background:var(--border2);border-radius:4px;}
+
+/* HEADER */
+.hdr{background:linear-gradient(135deg,var(--accent2) 0%,var(--accent) 100%);height:50px;padding:0 22px;display:flex;align-items:center;gap:12px;box-shadow:0 2px 8px rgba(0,0,0,.22);position:sticky;top:0;z-index:200;}
+.logo{width:32px;height:32px;background:rgba(255,255,255,.18);border:1px solid rgba(255,255,255,.28);border-radius:8px;display:flex;align-items:center;justify-content:center;font-family:'JetBrains Mono',monospace;font-size:12px;color:#fff;font-weight:600;flex-shrink:0;}
+.htitle{font-size:14px;font-weight:700;color:#fff;letter-spacing:.015em;}
+
+/* LAYOUT */
+.main{display:flex;height:calc(100vh - 50px);}
+
+/* SIDEBAR */
+.sidebar{width:280px;min-width:280px;background:var(--surface);border-right:1.5px solid var(--border);padding:12px;overflow-y:auto;display:flex;flex-direction:column;gap:12px;}
+.stitle{font-family:'JetBrains Mono',monospace;font-size:9px;font-weight:500;letter-spacing:.13em;color:var(--text-muted);text-transform:uppercase;margin-bottom:7px;padding-bottom:5px;border-bottom:1px solid var(--border);}
+
+/* UPLOAD */
+.uitem{background:var(--surface2);border:1.5px solid var(--border);border-radius:7px;padding:8px 11px;margin-bottom:5px;transition:border-color .2s;}
+.uitem:hover{border-color:var(--accent);}
+.uitem.loaded{border-color:var(--green);background:var(--green-bg);}
+.uitem label{display:flex;align-items:center;gap:8px;cursor:pointer;}
+.uicon{width:24px;height:24px;border-radius:5px;background:var(--accent-light);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:11px;flex-shrink:0;}
+.uitem.loaded .uicon{background:var(--green-bg);border-color:var(--green);}
+.uname{font-size:12px;font-weight:600;color:var(--text);}
+.ustatus{font-size:10px;color:var(--text-muted);margin-top:1px;font-family:'JetBrains Mono',monospace;}
+.uitem.loaded .ustatus{color:var(--green);}
+input[type=file]{position:absolute;width:1px;height:1px;opacity:0;overflow:hidden;}
+
+.pbtn{width:100%;background:var(--accent);color:#fff;border:none;border-radius:7px;padding:9px;font-family:'Inter',sans-serif;font-size:12px;font-weight:600;cursor:pointer;letter-spacing:.02em;transition:background .2s;box-shadow:0 2px 5px rgba(26,93,200,.3);}
+.pbtn:hover{background:var(--accent2);}
+.pbtn:disabled{background:var(--border2);color:var(--text-muted);box-shadow:none;cursor:not-allowed;}
+
+/* STATS */
+.stats-grid{display:grid;grid-template-columns:1fr 1fr;gap:5px;}
+.sc{background:var(--surface2);border:1.5px solid var(--border);border-radius:7px;padding:8px;text-align:center;}
+.sv{font-family:'JetBrains Mono',monospace;font-size:18px;font-weight:500;color:var(--accent);}
+.sl{font-size:9px;color:var(--text-muted);margin-top:2px;letter-spacing:.06em;text-transform:uppercase;font-weight:500;}
+
+/* NEXT-UP PANELS */
+.next-panel{background:var(--surface);border:1.5px solid var(--border);border-radius:11px;overflow:hidden;box-shadow:var(--shadow);}
+.next-header{padding:11px 15px;font-size:13px;font-weight:700;font-family:'Inter',sans-serif;border-bottom:1.5px solid var(--border);}
+.next-header.esc{background:var(--accent-light);color:var(--accent2);}
+.next-header.reds{background:var(--green-bg);color:var(--green);}
+.next-list{overflow-y:auto;max-height:480px;}
+/* ENRICHED NEXT ITEM */
+.next-item{display:flex;align-items:center;justify-content:space-between;padding:10px 15px;border-bottom:1px solid var(--border);transition:background .15s;gap:10px;}
+.next-item:last-child{border-bottom:none;}
+.next-item:hover:not(.active-next):not(.next-inelig){background:var(--accent-light);}
+.next-item.active-next{background:var(--accent);}
+.next-item.next-inelig{opacity:.35;background:var(--surface2);}
+.ni-left{flex:1;min-width:0;}
+.ni-rank{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--text-muted);font-weight:500;margin-bottom:2px;}
+.next-item.active-next .ni-rank{color:rgba(255,255,255,.6);}
+.ni-name{font-size:13px;font-weight:700;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.next-item.active-next .ni-name{color:#fff;}
+.ni-geo{font-size:10px;font-family:'JetBrains Mono',monospace;color:var(--text-muted);margin-top:2px;}
+.next-item.active-next .ni-geo{color:rgba(255,255,255,.65);}
+.ni-blocked{font-size:9px;font-family:'JetBrains Mono',monospace;color:var(--red);margin-top:3px;font-weight:600;}
+.ni-right{display:flex;flex-direction:column;align-items:flex-end;gap:5px;flex-shrink:0;}
+.ni-load-chip{font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:600;padding:3px 8px;border-radius:5px;white-space:nowrap;}
+.ni-load-chip.green{background:var(--green-bg);color:var(--green);border:1px solid var(--green-border);}
+.ni-load-chip.yellow{background:var(--yellow-bg);color:var(--yellow);border:1px solid var(--yellow-border);}
+.ni-load-chip.red{background:var(--red-bg);color:var(--red);border:1px solid var(--red-border);}
+.next-item.active-next .ni-load-chip{background:rgba(255,255,255,.2);color:#fff;border-color:rgba(255,255,255,.25);}
+.ni-meta{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--text-muted);text-align:right;white-space:nowrap;}
+.next-item.active-next .ni-meta{color:rgba(255,255,255,.72);}
+/* SIDE-BY-SIDE LAYOUT */
+.em-layout{display:grid;grid-template-columns:1fr 1fr;gap:14px;align-items:start;}
+.em-left-panels,.em-right-panels{min-width:0;}
+
+/* SESSION LOG */
+.slog{background:var(--surface2);border:1.5px solid var(--border);border-radius:8px;padding:10px;max-height:210px;overflow-y:auto;}
+.le{display:flex;align-items:flex-start;justify-content:space-between;padding:5px 0;border-bottom:1px solid var(--border);gap:5px;}
+.le:last-child{border-bottom:none;}
+.le-info{flex:1;min-width:0;}
+.lem{font-size:11px;font-weight:700;color:var(--text);}
+.lacct{font-size:10px;color:var(--text-muted);font-family:'JetBrains Mono',monospace;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.lcnt{font-size:9px;color:var(--accent);font-family:'JetBrains Mono',monospace;margin-top:1px;}
+.le-right{display:flex;align-items:center;gap:3px;flex-shrink:0;}
+.lbadge{font-size:9px;padding:2px 5px;border-radius:3px;font-family:'JetBrains Mono',monospace;background:var(--green-bg);color:var(--green);font-weight:600;}
+.le-del{width:17px;height:17px;border-radius:3px;background:var(--red-bg);border:1px solid var(--red-border);color:var(--red);font-size:9px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background .15s;flex-shrink:0;}
+.le-del:hover{background:#fdd0d0;}
+
+.nodata{color:var(--text-muted);font-size:11px;font-style:italic;}
+
+/* CONTENT */
+.content{flex:1;overflow-y:auto;padding:16px 20px;}
+
+/* QUAL PANEL */
+.qpanel{background:var(--surface);border:1.5px solid var(--border);border-radius:10px;padding:14px 18px;margin-bottom:14px;box-shadow:var(--shadow);}
+.qtitle{font-family:'JetBrains Mono',monospace;font-size:10px;font-weight:700;letter-spacing:.1em;color:var(--accent);text-transform:uppercase;margin-bottom:12px;display:flex;align-items:center;gap:8px;}
+.qtitle::after{content:'';flex:1;height:1px;background:var(--border);}
+.qgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(175px,1fr));gap:8px;margin-bottom:12px;}
+.fg{display:flex;flex-direction:column;gap:4px;}
+.fg label{font-size:10px;color:var(--text-muted);font-family:'JetBrains Mono',monospace;letter-spacing:.07em;text-transform:uppercase;font-weight:500;}
+.fg input,.fg select{background:var(--surface2);border:1.5px solid var(--border);color:var(--text);border-radius:6px;padding:6px 9px;font-size:12px;font-family:'Inter',sans-serif;font-weight:500;outline:none;transition:border-color .2s,box-shadow .2s;}
+.fg input:focus,.fg select:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(21,88,192,.1);}
+.fg select option{background:#fff;color:#000;}
+.qfooter{display:flex;gap:8px;align-items:center;flex-wrap:wrap;}
+.fbtn{background:var(--accent);color:#fff;border:none;border-radius:6px;padding:7px 16px;font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:500;cursor:pointer;transition:background .2s;letter-spacing:.04em;}
+.fbtn:hover{background:var(--accent2);}
+.qresult{display:flex;align-items:center;gap:7px;padding:6px 12px;border-radius:6px;font-size:12px;font-weight:600;}
+.qresult.valid{background:var(--green-bg);color:var(--green);border:1.5px solid var(--green-border);}
+.qresult.invalid{background:var(--red-bg);color:var(--red);border:1.5px solid var(--red-border);}
+.qresult.pending{background:var(--yellow-bg);color:var(--yellow);border:1.5px solid var(--yellow-border);}
+
+/* PAUSED BAR */
+.pbar{background:var(--red-bg);border:1.5px solid var(--red-border);border-radius:7px;padding:8px 11px;margin-bottom:12px;}
+.pbar-t{font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--red);letter-spacing:.1em;text-transform:uppercase;margin-bottom:5px;font-weight:700;}
+.ptag{display:inline-block;font-size:10px;font-family:'JetBrains Mono',monospace;background:#fff;color:var(--red);border:1px solid var(--red-border);padding:2px 6px;border-radius:3px;margin:2px;font-weight:500;}
+
+/* TABS */
+.tabs{display:flex;gap:0;margin-bottom:13px;background:var(--surface);border:1.5px solid var(--border);border-radius:7px;padding:3px;width:fit-content;}
+.tab{padding:5px 14px;border-radius:5px;font-size:11px;font-weight:600;cursor:pointer;color:var(--text-muted);transition:all .15s;}
+.tab.active{background:var(--accent);color:#fff;box-shadow:0 1px 4px rgba(21,88,192,.3);}
+
+/* RECOMMENDATION CARD */
+.rec-card{background:var(--surface);border:2px solid var(--accent);border-radius:10px;padding:16px 18px;margin-bottom:14px;box-shadow:var(--shadow-md);position:relative;}
+.rec-card.no-rec{border-color:var(--border2);background:var(--surface2);}
+.rec-label{font-family:'JetBrains Mono',monospace;font-size:9px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--accent);margin-bottom:8px;}
+.rec-label.no-rec{color:var(--text-muted);}
+.rec-name{font-size:18px;font-weight:700;color:var(--text);margin-bottom:3px;}
+.rec-sub{font-size:11px;color:var(--text-muted);font-family:'JetBrains Mono',monospace;margin-bottom:10px;}
+.rec-reason{font-size:11px;color:var(--text-mid);background:var(--surface2);border:1px solid var(--border);border-radius:5px;padding:6px 9px;margin-bottom:10px;font-weight:500;}
+.rec-stats{display:flex;gap:12px;margin-bottom:12px;}
+.rs{text-align:center;}
+.rsv{font-family:'JetBrains Mono',monospace;font-size:16px;font-weight:600;color:var(--text);}
+.rsv.warn{color:var(--yellow);}
+.rsv.danger{color:var(--red);}
+.rsl{font-size:9px;color:var(--text-muted);text-transform:uppercase;letter-spacing:.07em;margin-top:1px;font-weight:500;}
+.rec-bar{height:4px;background:var(--bg);border-radius:2px;margin-bottom:12px;}
+.rec-fill{height:100%;border-radius:2px;}
+.rec-fill.green{background:var(--green);}
+.rec-fill.yellow{background:var(--yellow);}
+.rec-fill.red{background:var(--red);}
+.rec-acts{display:flex;gap:8px;}
+.bconf{flex:1;background:var(--green-bg);border:1.5px solid var(--green-border);color:var(--green);border-radius:6px;padding:8px;font-size:12px;font-weight:700;cursor:pointer;font-family:'JetBrains Mono',monospace;transition:all .2s;}
+.bconf:hover{background:#c8f0dc;border-color:var(--green);}
+.bskip{flex:1;background:var(--red-bg);border:1.5px solid var(--red-border);color:var(--red);border-radius:6px;padding:8px;font-size:12px;font-weight:700;cursor:pointer;font-family:'JetBrains Mono',monospace;transition:all .2s;}
+.bskip:hover{background:#fdd0d0;border-color:var(--red);}
+
+/* ALL AVAILABLE EMs */
+.sec-hdr{display:flex;align-items:center;gap:8px;margin-bottom:10px;margin-top:4px;}
+.sec-pill{font-family:'JetBrains Mono',monospace;font-size:9px;font-weight:700;letter-spacing:.1em;padding:3px 10px;border-radius:20px;text-transform:uppercase;}
+.sec-pill.ESC{background:var(--accent-light);color:var(--accent2);border:1.5px solid var(--border2);}
+.sec-pill.REDS{background:var(--green-bg);color:var(--green);border:1.5px solid var(--green-border);}
+.sec-pill.OVFL{background:var(--yellow-bg);color:var(--yellow);border:1.5px solid var(--yellow-border);}
+.gline{flex:1;height:1px;background:var(--border);}
+.gcnt{font-size:10px;color:var(--text-muted);font-family:'JetBrains Mono',monospace;font-weight:500;}
+
+/* EM CARDS */
+.em-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(255px,1fr));gap:8px;margin-bottom:18px;}
+.emc{background:var(--surface);border:1.5px solid var(--border);border-radius:9px;padding:11px 13px;position:relative;overflow:hidden;transition:border-color .2s,box-shadow .2s;box-shadow:var(--shadow);}
+.emc:hover:not(.inelig){border-color:var(--accent);box-shadow:var(--shadow-md);}
+.emc::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;}
+.emc.sg::before{background:var(--green);}
+.emc.sy::before{background:var(--yellow);}
+.emc.st::before{background:var(--accent);}
+.emc.sel-rec{border-color:var(--accent);border-width:2px;background:#f5f9ff;}
+.emc.inelig{opacity:.25;pointer-events:none;}
+.geo-badge{display:inline-flex;align-items:center;font-family:'JetBrains Mono',monospace;font-size:8px;font-weight:700;letter-spacing:.1em;padding:2px 6px;border-radius:8px;margin-bottom:4px;text-transform:uppercase;}
+.geo-badge.AMER{background:#dbeafe;color:#1d4ed8;border:1px solid #93c5fd;}
+.geo-badge.APAC{background:#ede9fe;color:#5b21b6;border:1px solid #c4b5fd;}
+.geo-badge.EMEA{background:#ffedd5;color:#9a3412;border:1px solid #fdba74;}
+.terr-tag{display:inline-block;font-size:8px;font-family:'JetBrains Mono',monospace;background:var(--accent-light);color:var(--accent);border:1px solid var(--border2);padding:2px 5px;border-radius:3px;margin-bottom:6px;font-weight:600;}
+.em-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px;}
+.emn{font-size:12px;font-weight:700;color:var(--text);}
+.emt{font-size:9px;color:var(--text-muted);margin-top:1px;font-family:'JetBrains Mono',monospace;}
+.lbdg{font-family:'JetBrains Mono',monospace;font-size:10px;font-weight:700;padding:2px 6px;border-radius:3px;}
+.lbdg.green{background:var(--green-bg);color:var(--green);border:1px solid var(--green-border);}
+.lbdg.yellow{background:var(--yellow-bg);color:var(--yellow);border:1px solid var(--yellow-border);}
+.lbdg.red{background:var(--red-bg);color:var(--red);border:1px solid var(--red-border);}
+.emst{display:flex;gap:12px;margin-bottom:7px;}
+.es{text-align:center;}
+.esv{font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:600;color:var(--text);}
+.esv.warn{color:var(--yellow);}
+.esv.danger{color:var(--red);}
+.esl{font-size:8px;color:var(--text-muted);text-transform:uppercase;letter-spacing:.07em;margin-top:1px;font-weight:500;}
+.cbar2{height:3px;background:var(--bg);border-radius:2px;margin-bottom:8px;}
+.cfill{height:100%;border-radius:2px;}
+.cfill.green{background:var(--green);}
+.cfill.yellow{background:var(--yellow);}
+.cfill.red{background:var(--red);}
+.sel-btn{width:100%;background:var(--accent-light);border:1.5px solid var(--border2);color:var(--accent2);border-radius:5px;padding:5px;font-size:10px;font-weight:700;cursor:pointer;font-family:'JetBrains Mono',monospace;transition:all .2s;}
+.sel-btn:hover{background:var(--accent);color:#fff;border-color:var(--accent);}
+.sel-btn.selected{background:var(--accent);color:#fff;border-color:var(--accent);}
+.ireason{text-align:center;font-size:10px;color:var(--red);font-family:'JetBrains Mono',monospace;padding:5px 0;background:var(--red-bg);border-radius:4px;font-weight:600;}
+
+.locked-overlay{text-align:center;padding:36px 20px;color:var(--text-muted);background:var(--surface2);border:1.5px dashed var(--border2);border-radius:9px;margin-top:8px;}
+.empty-state{text-align:center;padding:60px 20px;color:var(--text-muted);}
+
+</style>
+</head>
+<body>
+
+<div class="hdr">
+  <div class="logo">BC</div>
+  <div>
+    <div class="htitle">BaseCamp &middot; EM Assignment Tool</div>
+    <div style="font-size:10px;color:rgba(255,255,255,.5);font-family:'JetBrains Mono',monospace;margin-top:1px;letter-spacing:.04em;">Red Accounts &amp; Escalations &middot; FY26 Q3</div>
+  </div>
+  <div style="margin-left:auto;display:flex;align-items:center;gap:8px;">
+    <div id="hdrStats" style="display:none;font-family:'JetBrains Mono',monospace;font-size:10px;color:rgba(255,255,255,.75);display:flex;gap:10px;"></div>
+  </div>
+</div>
+
+<div class="main">
+  <!-- ── SIDEBAR ── -->
+  <div class="sidebar">
+
+    <div>
+      <div class="stitle">Data Sources</div>
+      <div class="uitem" id="ci"><label><div class="uicon">📊</div><div style="flex:1"><div class="uname">Capacity Dashboard</div><div class="ustatus" id="cs">Data_Download.csv</div></div><input type="file" id="capFile" accept=".csv"></label></div>
+      <div class="uitem" id="pi"><label><div class="uicon">⏸</div><div style="flex:1"><div class="uname">Pause Assignments</div><div class="ustatus" id="ps">Pause_EM_Assignments.csv</div></div><input type="file" id="pauseFile" accept=".csv"></label></div>
+      <div class="uitem" id="dti"><label><div class="uicon">📅</div><div style="flex:1"><div class="uname">Daily Tracker</div><div class="ustatus" id="dts">Today's assignments CSV</div></div><input type="file" id="dailyFile" accept=".csv"></label></div>
+      <div class="uitem" id="wti"><label><div class="uicon">📋</div><div style="flex:1"><div class="uname">Weekly Tracker</div><div class="ustatus" id="wts">Weekly assignments CSV</div></div><input type="file" id="weeklyFile" accept=".csv"></label></div>
+      <button class="pbtn" id="processBtn" onclick="processAll()" disabled>⚡ Process & Filter EMs</button>
+    </div>
+
+    <div>
+      <div class="stitle">Live Stats</div>
+      <div class="stats-grid">
+        <div class="sc"><div class="sv" id="sG">—</div><div class="sl">Available</div></div>
+        <div class="sc"><div class="sv" id="sP" style="color:var(--red)">—</div><div class="sl">Paused</div></div>
+        <div class="sc"><div class="sv" id="sC" style="color:var(--green)">0</div><div class="sl">Confirmed</div></div>
+        <div class="sc"><div class="sv" id="sK" style="color:var(--yellow)">—</div><div class="sl">Capped</div></div>
+      </div>
+    </div>
+
+    <!-- SESSION LOG -->
+    <div class="slog">
+      <div class="stitle">Session Log</div>
+      <div id="logEl"><div class="nodata">No assignments yet</div></div>
+    </div>
+
+  </div>
+
+  <!-- ── CONTENT ── -->
+  <div class="content">
+
+    <div id="emptyState" class="empty-state">
+      <div style="font-size:38px;margin-bottom:12px">🗂</div>
+      <div style="font-size:14px;font-weight:700;color:var(--text-mid);margin-bottom:8px">Upload 4 CSV files to begin</div>
+      <div style="font-size:12px;line-height:1.9;color:var(--text-muted)">
+        1. <b>Capacity Dashboard</b> — Data_Download.csv<br>
+        2. <b>Pause Assignments</b> — Pause_EM_Assignments.csv<br>
+        3. <b>Daily Tracker</b> — Today's assignments (export from Google Sheet)<br>
+        4. <b>Weekly Tracker</b> — This week's assignments (export from Google Sheet)<br><br>
+        Then click <b>⚡ Process &amp; Filter EMs</b>
+      </div>
+    </div>
+
+    <div id="mainContent" style="display:none">
+
+      <!-- STEP 1: PAUSED BAR — shown immediately after processAll -->
+      <div class="pbar">
+        <div class="pbar-t">⛔ Paused — excluded from all assignments</div>
+        <div id="pausedTags"><span class="nodata">None</span></div>
+      </div>
+
+      <!-- STEP 2: EM AVAILABILITY PANELS — shown immediately after processAll -->
+      <div class="em-layout" id="emPanels">
+        <div class="em-left-panels">
+          <div class="next-panel">
+            <div class="next-header esc">⚡ Next 10 — Escalations</div>
+            <div class="next-list" id="nextEsc"><div style="padding:10px 14px" class="nodata">Loading...</div></div>
+          </div>
+        </div>
+        <div class="em-right-panels">
+          <div class="next-panel">
+            <div class="next-header reds">🔴 Next 10 — Red Accounts</div>
+            <div class="next-list" id="nextReds"><div style="padding:10px 14px" class="nodata">Loading...</div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- DIVIDER -->
+      <div style="display:flex;align-items:center;gap:10px;margin:4px 0;">
+        <div style="flex:1;height:1px;background:var(--border)"></div>
+        <div style="font-size:10px;font-family:'JetBrains Mono',monospace;color:var(--text-muted);letter-spacing:.08em;text-transform:uppercase;">Step 2 — Enter case details to get a recommendation</div>
+        <div style="flex:1;height:1px;background:var(--border)"></div>
+      </div>
+
+      <!-- STEP 3: QUAL PANEL — always visible, enter details here -->
+      <div class="qpanel">
+        <div class="qtitle">Case Details &amp; Qualification</div>
+        <div class="qgrid">
+          <div class="fg"><label>Account Name</label><input type="text" id="accountName" placeholder="e.g. Zoetis Inc."></div>
+          <div class="fg"><label>Territory / OU</label><input type="text" id="terrInput" placeholder="e.g. AMER ACC CBS ENTR"></div>
+          <div class="fg"><label>Team</label>
+            <select id="teamSel">
+              <option value="escalations">Escalations</option>
+              <option value="reds">Red Accounts</option>
+            </select>
+          </div>
+          <div class="fg"><label>Entitlement</label>
+            <select id="entitlement">
+              <option value="">— Select —</option>
+              <option value="signature">Signature</option>
+              <option value="non-signature">Non-Signature</option>
+            </select>
+          </div>
+          <div class="fg"><label>Renewal Year (FY)</label>
+            <select id="renewalYear">
+              <option value="">— Select —</option>
+              <option value="26">FY26</option>
+              <option value="27">FY27</option>
+              <option value="28">FY28</option>
+              <option value="29">FY29</option>
+              <option value="30+">FY30+</option>
+            </select>
+          </div>
+          <div class="fg"><label>Forecasted Attrition ($)</label><input type="number" id="attrition" placeholder="e.g. 300000" min="0"></div>
+          <div class="fg"><label>Global AOV ($)</label><input type="number" id="aov" placeholder="e.g. 5000000" min="0"></div>
+          <div class="fg"><label>CSG Area / OU Region</label>
+            <select id="csgArea">
+              <option value="">— Select —</option>
+              <option value="AMER">AMER</option>
+              <option value="ANZ">ANZ</option>
+              <option value="JPKT">JPKT</option>
+              <option value="UKI">UKI</option>
+              <option value="EMEA_CENTRAL">EMEA Central</option>
+              <option value="EMEA_FRANCE">EMEA France</option>
+              <option value="EMEA_NORTH">EMEA North</option>
+              <option value="EMEA_SOUTH">EMEA South</option>
+              <option value="LATAM">LATAM</option>
+              <option value="SOUTH_ASIA">South Asia (ASEAN/India)</option>
+            </select>
+          </div>
+        </div>
+        <div class="qfooter">
+          <button class="fbtn" onclick="runQual()">🔍 Qualify &amp; Recommend EM</button>
+          <div id="qualResult" class="qresult pending" style="display:none"></div>
+        </div>
+      </div>
+
+      <!-- STEP 4: RECOMMENDATION — only shown after qual passes -->
+      <div id="lockedView" class="locked-overlay">
+        <div style="font-size:22px;margin-bottom:6px">👆</div>
+        <div style="font-size:13px;font-weight:700;color:var(--text-mid)">Fill in case details above and click Qualify &amp; Recommend EM</div>
+        <div style="font-size:11px;color:var(--text-muted);margin-top:4px">Qualification must pass before a specific EM recommendation is shown</div>
+      </div>
+
+      <div id="emView" style="display:none">
+        <!-- RECOMMENDATION CARD ONLY — panels are already shown above -->
+        <div id="recCard" class="rec-card no-rec">
+          <div class="rec-label no-rec" id="recLabel">No recommendation yet</div>
+          <div class="rec-name" id="recName" style="font-size:14px;color:var(--text-muted)">Run qualification to get a recommendation</div>
+          <div class="rec-sub" id="recSub"></div>
+          <div class="rec-reason" id="recReason" style="display:none"></div>
+          <div class="rec-stats" id="recStats" style="display:none"></div>
+          <div class="rec-bar" id="recBarWrap" style="display:none"><div class="rec-fill" id="recBar"></div></div>
+          <div class="rec-acts" id="recActs" style="display:none">
+            <button class="bconf" id="recConfBtn">✅ Confirm Assignment</button>
+            <button class="bskip" onclick="skipRec()">✗ Skip — Show Next</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── STATE ──────────────────────────────────────────────────────
+let capMap={}, pausedSet=new Set(), dailyBase={}, weeklyBase={};
+let session=[], skipped=new Set();
+let loaded={cap:false,pause:false,daily:false,weekly:false};
+let lastTerr='', activeTab='escalations', qualified=false;
+let currentTeam='escalations';
+let rrRedPointers={AMER:0,JAPAC:0,EMEA:0};
+let currentRec=null; // {name, reason}
+
+// ── TERRITORY MAP (hardcoded from CSV) ────────────────────────
+const TERR_TO_EM_REDS = {
+  'AMER ACC TMT':       'Kelsey Hendrix',
+  'AMER ACC CBS':       'Kevin Gaul',
+  'AMER ICE ENTR RCG':  'Bernard Kincius',
+  'AMER SMB':           'Elizabeth Farrellee',
+  'AMER ICE ENTR MAE':  'Will Robinson',
+  'AMER REG CAN':       'Jill Brames',
+  'AMER REG FINS':      'Jill Brames',
+  'AMER REG HLS':       'Shekinah Ellis',
+  'NGO AMER':           'Isaac Johnson',
+  'LATAM':              'Jonathan Nance',
+  'PS EMEA NTH':        'Evan Mercier',
+  'PS EMEA UKI':        'Evan Mercier',
+  'PS EMEA STH':        'Evan Mercier',
+  'PS AMER SNS':        'Evan Mercier',
+  'ANZ':                'Poppy Katsikas',
+  'ROASEAN':            'Joni Echavez',
+  'JAPAN/KOREA/TAIWAN': 'Rajeev Jain',
+  'INDIA':              'Gandharv Madaan',
+  'SOUTH':              'Fabrizio Da Ronch',
+  'CENTRAL':            'Stefan Hurley',
+  'NORTH':              'Stefan Hurley',
+  'UKI':                'Joseph Payne',
+};
+
+const TERR_TO_EM_ESC = {
+  'AMER ICE CMRCL':        'Levi Hillger',
+  'AMER ICE ENTR MAE':     'Levi Hillger',
+  'AMER ICE ENTR RCG':     'Rebecca Moore',
+  'AMER REG CAN':          'Rogelio Portillo',
+  'AMER REG FINS':         'Rogelio Portillo',
+  'AMER REG HLS':          'Sylvia Knepp',
+  'AMER SMB':              'Dominic Orsillo',
+  'LATAM SMB':             'Dominic Orsillo',
+  'LATAM':                 'James Jong',
+  'NGO AMER':              'Franz Johnson',
+  'NORTH AND NGO/PUBSEC':  'Sonia Notani',
+  'PS AMER':               'Sonia Notani',
+  'PS EMEA':               'Sonia Notani',
+  'CENTRAL':               'Jacqueline Rose',
+  'SOUTH AND FRANCE':      'Dorin Fazli',
+  'UKI':                   'Jitin Chopra',
+  'FRANCE':                'Myles Slevin',
+  'SMB':                   'Jens Geschwandtner',
+  'ANZ':                   'Anna Anderson',
+  'ROASEAN':               'Raman Kaushik',
+  'INDIA':                 'Maninder Singh Mistry',
+  'JAPAN/KOREA/TAIWAN':    'Maninder Singh Mistry',
+};
+
+// Full EM list with team/geo
+const TM={
+  'Levi Hillger':          {geo:'AMER', terr:['AMER ICE CMRCL','AMER ICE ENTR MAE'],                        team:'Escalations'},
+  'Rebecca Moore':         {geo:'AMER', terr:['AMER ICE ENTR RCG'],                                         team:'Escalations'},
+  'Rogelio Portillo':      {geo:'AMER', terr:['AMER REG CAN','AMER REG FINS'],                               team:'Escalations'},
+  'Sylvia Knepp':          {geo:'AMER', terr:['AMER REG HLS'],                                              team:'Escalations'},
+  'Dominic Orsillo':       {geo:'AMER', terr:['AMER SMB','LATAM SMB'],                                      team:'Escalations'},
+  'James Jong':            {geo:'AMER', terr:['LATAM'],                                                     team:'Escalations'},
+  'Franz Johnson':         {geo:'AMER', terr:['NGO AMER'],                                                  team:'Escalations'},
+  'Sonia Notani':          {geo:'EMEA', terr:['North and NGO/Pubsec','PS AMER','PS EMEA'],                  team:'Escalations'},
+  'Jacqueline Rose':       {geo:'EMEA', terr:['Central'],                                                   team:'Escalations'},
+  'Dorin Fazli':           {geo:'EMEA', terr:['South and France'],                                          team:'Escalations'},
+  'Jitin Chopra':          {geo:'EMEA', terr:['UKI'],                                                       team:'Escalations'},
+  'Myles Slevin':          {geo:'EMEA', terr:['France'],                                                    team:'Escalations'},
+  'Jens Geschwandtner':    {geo:'EMEA', terr:['SMB'],                                                       team:'Escalations'},
+  'Anna Anderson':         {geo:'JAPAC',terr:['ANZ'],                                                       team:'Escalations'},
+  'Hugo Chan':             {geo:'JAPAC',terr:['ANZ','RoASEAN'],                                             team:'Escalations'},
+  'Laura Taylor':          {geo:'JAPAC',terr:['ANZ'],                                                       team:'Escalations'},
+  'Maninder Singh Mistry': {geo:'JAPAC',terr:['India','Japan/Korea/Taiwan'],                                team:'Escalations'},
+  'Punit Mishra':          {geo:'JAPAC',terr:['India','RoASEAN'],                                           team:'Escalations'},
+  'Raman Kaushik':         {geo:'JAPAC',terr:['Japan/Korea/Taiwan','RoASEAN'],                              team:'Escalations'},
+  'Kelsey Hendrix':        {geo:'AMER', terr:['AMER ACC TMT'],                                              team:'Red Accounts'},
+  'Kevin Gaul':            {geo:'AMER', terr:['AMER ACC CBS'],                                              team:'Red Accounts'},
+  'Bernard Kincius':       {geo:'AMER', terr:['AMER ICE ENTR RCG'],                                        team:'Red Accounts'},
+  'Elizabeth Farrellee':   {geo:'AMER', terr:['AMER SMB'],                                                  team:'Red Accounts'},
+  'Will Robinson':         {geo:'AMER', terr:['AMER ICE ENTR MAE'],                                        team:'Red Accounts'},
+  'Jill Brames':           {geo:'AMER', terr:['AMER REG CAN','AMER REG FINS'],                              team:'Red Accounts'},
+  'Shekinah Ellis':        {geo:'AMER', terr:['AMER REG HLS'],                                              team:'Red Accounts'},
+  'Isaac Johnson':         {geo:'AMER', terr:['NGO AMER'],                                                  team:'Red Accounts'},
+  'Jonathan Nance':        {geo:'AMER', terr:['LATAM'],                                                     team:'Red Accounts'},
+  'Evan Mercier':          {geo:'AMER', terr:['PS EMEA NTH','PS EMEA UKI','PS EMEA STH','PS AMER SNS'],    team:'Red Accounts'},
+  'Poppy Katsikas':        {geo:'JAPAC',terr:['ANZ'],                                                       team:'Red Accounts'},
+  'Joni Echavez':          {geo:'JAPAC',terr:['RoASEAN'],                                                   team:'Red Accounts'},
+  'Rajeev Jain':           {geo:'JAPAC',terr:['Japan/Korea/Taiwan'],                                        team:'Red Accounts'},
+  'Gandharv Madaan':       {geo:'JAPAC',terr:['India'],                                                     team:'Red Accounts'},
+  'Swastica Sinha':        {geo:'JAPAC',terr:['ANZ'],                                                       team:'Red Accounts'},
+  'Fabrizio Da Ronch':     {geo:'EMEA', terr:['South'],                                                     team:'Red Accounts'},
+  'Stefan Hurley':         {geo:'EMEA', terr:['Central','North'],                                           team:'Red Accounts'},
+  'Joseph Payne':          {geo:'EMEA', terr:['UKI'],                                                       team:'Red Accounts'},
+  "Kieran O'Donovan":      {geo:'EMEA', terr:['pooled'],                                                    team:'Red Accounts'},
+  'Lisa McCarthy':         {geo:'EMEA', terr:['pooled'],                                                    team:'Red Accounts'},
+};
+
+// ── CHANGE 1 OF 2: EXPANDED EMAIL_MAP ─────────────────────────
+// Added many more prefix→name entries so emails like
+// "skasetti@salesforce.com", "lhillger@salesforce.com" etc. resolve correctly.
+// The parsePause function below also handles firstname.lastname patterns
+// automatically, so most EMs will resolve even without an explicit entry here.
+// ── HARDCODED EMAIL → FULL NAME MAP ──────────────────────────
+// Every known email prefix mapped explicitly to full display name.
+// This is the single source of truth — fuzzy matching is only a fallback.
+const EMAIL_MAP = {
+  'asharib':            'Syed Ahsan Abbas Sharib',
+  'acustodio':          'Anna Anderson',
+  'anchal.bisen':       'Anchal Bisen',
+  'anwesha.dey':        'Anwesha Dey',
+  'bkincius':           'Bernard Kincius',
+  'bkuess':             'Beth Kuess',
+  'bkarira':            'Bharat Karira',
+  'bchitreddy':         'Bharath Krishna Reddy Chitreddy',
+  'cjupin':             'Chris Jupin',
+  'dorsillo':           'Dominic Orsillo',
+  'dottomano':          'Don Ottomano',
+  'dfazli':             'Dorin Fazli',
+  'enirwan':            'Ehsaan Tasin Nirwan',
+  'efarrellee':         'Elizabeth Farrellee',
+  'emercier':           'Evan Mercier',
+  'fdaronch':           'Fabrizio Da Ronch',
+  'franz.johnson':      'Franz Johnson',
+  'gmadaan':            'Gandharv Madaan',
+  'hcrittenden':        'Harold Crittenden',
+  'hmike':              'Hermon Mike',
+  'hugo.chan':          'Hugo Chan',
+  'ijohnson':           'Isaac Johnson',
+  'jacqueline.rose':    'Jacqueline Rose',
+  'james.jong':         'James Jong',
+  'jgeschwandtner':     'Jens Geschwandtner',
+  'jbrames':            'Jill Brames',
+  'jitin.chopra':       'Jitin Chopra',
+  'jnance':             'Jonathan Nance',
+  'jechavez':           'Joni Echavez',
+  'joseph.payne':       'Joseph Payne',
+  'kshanker':           'Kaushik Shanker',
+  'kelsey.hendrix':     'Kelsey Hendrix',
+  'kgaul':              'Kevin Gaul',
+  'kodonovan':          "Kieran O'Donovan",
+  'kgrantham':          'Kristina Grantham',
+  'lowens':             'Larry Owens',
+  'taylor.laura':       'Laura Taylor',
+  'lhillger':           'Levi Hillger',
+  'lisa.mccarthy':      'Lisa McCarthy',
+  'lbizaoui':           'Lloyd Bizaoui',
+  'mcarlapati':         'Mahathi Carlapati',
+  'maninder.mistry':    'Maninder Singh Mistry',
+  'mkaur':              'Manmeet Kaur',
+  'myles.slevin':       'Myles Slevin',
+  'npank':              'Nicole Pank',
+  'pgoud':              'Pinky Goud',
+  'pkatsikas':          'Poppy Katsikas',
+  'p.singh':            'Pranav Jyot Singh',
+  'punit.mishra':       'Punit Mishra',
+  'rneves':             'Rafael Neves',
+  'rahul.gulati':       'Rahul Gulati',
+  'raman.kaushik':      'Raman Kaushik',
+  'rasagna.varma':      'Rasagna Varma',
+  'rebecca.moore':      'Rebecca Moore',
+  'rportillo':          'Rogelio Portillo',
+  'skasetti':           'Sandeep Kasetti',
+  'shekinah.ellis':     'Shekinah Ellis',
+  'shivanjali.gupta':   'Shivanjali Gupta',
+  'snotani':            'Sonia Notani',
+  'stefan.hurley':      'Stefan Hurley',
+  'smarbha':            'Surinder Marbha',
+  'swastica.sinha':     'Swastica Sinha',
+  'sknepp':             'Sylvia Knepp',
+  'tssnv':              'Tejaswini SSNV',
+  'robinson.w':         'Will Robinson',
+  'ryanamala':          'Rajesh Babu Yanamala',
+  'ychinnagowdla':      'Yashwanth Chinnagowdla',
+  // keep legacy variants that may still appear in older exports
+  'anna.anderson':      'Anna Anderson',
+  'aanderson':          'Anna Anderson',
+  'jrose':              'Jacqueline Rose',
+  'fjohnson':           'Franz Johnson',
+  'jjong':              'James Jong',
+  'snotani':            'Sonia Notani',
+  'lmccarthy':          'Lisa McCarthy',
+  'mslevin':            'Myles Slevin',
+  'jchopra':            'Jitin Chopra',
+  'rkaushik':           'Raman Kaushik',
+  'rajeevjain':         'Rajeev Jain',
+  'rajeev.jain':        'Rajeev Jain',
+  'hchan':              'Hugo Chan',
+  'rmoore':             'Rebecca Moore',
+  'wrobinson':          'Will Robinson',
+  'ssinha':             'Swastica Sinha',
+  'shurley':            'Stefan Hurley',
+  'jpayne':             'Joseph Payne',
+  'rjain':              'Rajeev Jain',
+  'ltaylor':            'Laura Taylor',
+  'khendrix':           'Kelsey Hendrix',
+  'pmishra':            'Punit Mishra',
+  'aanderson':          'Anna Anderson',
+};
+
+// ── MASTER NAMES LIST ─────────────────────────────────────────
+const MASTER_NAMES = [
+  "Anchal Bisen","Anna Anderson","Anwesha Dey","Bernard Kincius","Beth Kuess",
+  "Bharat Karira","Bharath Krishna Reddy Chitreddy","Chris Jupin","Dominic Orsillo",
+  "Don Ottomano","Dorin Fazli","Ehsaan Tasin Nirwan","Elizabeth Farrellee","Evan Mercier",
+  "Fabrizio Da Ronch","Franz Johnson","Gandharv Madaan","Harold Crittenden","Hermon Mike",
+  "Hugo Chan","Isaac Johnson","Jacqueline Rose","James Jong","Jens Geschwandtner",
+  "Jill Brames","Jitin Chopra","Jonathan Nance","Joni Echavez","Joseph Payne",
+  "Kaushik Shanker","Kelsey Hendrix","Kevin Gaul","Kieran O'Donovan","Kristina Grantham",
+  "Larry Owens","Laura Taylor","Levi Hillger","Lisa McCarthy","Lloyd Bizaoui",
+  "Mahathi Carlapati","Maninder Singh Mistry","Manmeet Kaur","Myles Slevin","Nicole Pank",
+  "Pinky Goud","Poppy Katsikas","Pranav Jyot Singh","Punit Mishra","Rafael Neves",
+  "Rahul Gulati","Rajeev Jain","Raman Kaushik","Rasagna Varma","Rebecca Moore",
+  "Rogelio Portillo","Sandeep Kasetti","Shekinah Ellis","Shivanjali Gupta","Sonia Notani",
+  "Stefan Hurley","Surinder Marbha","Swastica Sinha","Syed Ahsan Abbas Sharib","Sylvia Knepp",
+  "Tejaswini SSNV","Will Robinson","Rajesh Babu Yanamala","Yashwanth Chinnagowdla",
+];
+
+// Build fast lookup indexes
+const _masterByFirst={}, _masterByLast={}, _masterLower={};
+for(const n of MASTER_NAMES){
+  const parts=n.split(' ');
+  const fn=parts[0].toLowerCase(), ln=parts[parts.length-1].toLowerCase();
+  _masterLower[n.toLowerCase()]=n;
+  (_masterByFirst[fn]=_masterByFirst[fn]||[]).push(n);
+  (_masterByLast[ln] =_masterByLast[ln] ||[]).push(n);
+}
+
+// ── EMAIL → FULL NAME RESOLVER ─────────────────────────────────
+// Step 1: hardcoded EMAIL_MAP — always wins (explicit, zero ambiguity)
+// Step 2: fuzzy fallback for any future emails not yet in the map
+function emailToName(raw){
+  // Skip system IDs (contain digits mixed with letters, no @)
+  if(!raw.includes('@') && /[0-9]/.test(raw)) return null;
+
+  const prefix = raw.includes('@') ? raw.split('@')[0].toLowerCase() : raw.toLowerCase();
+
+  // Step 1: hardcoded map — exact, no guessing
+  if(EMAIL_MAP[prefix]) return EMAIL_MAP[prefix];
+
+  // Step 2: fuzzy fallback (for emails not yet in the map)
+  // 2a. Dot-split firstname.lastname or lastname.firstname
+  if(prefix.includes('.')){
+    const parts=prefix.split('.');
+    for(let i=0;i<parts.length-1;i++){
+      const fn=parts[i], ln=parts[i+1];
+      if(fn.length<1||ln.length<2) continue;
+      // single-letter initial: a.anderson → Anna Anderson
+      if(fn.length===1){
+        const hits=MASTER_NAMES.filter(n=>n.split()[0].toLowerCase().startsWith(fn)&&n.split().pop().toLowerCase()===ln);
+        if(hits.length===1) return hits[0];
+        const hits2=MASTER_NAMES.filter(n=>n.split()[0].toLowerCase().startsWith(fn)&&n.split().pop().toLowerCase().startsWith(ln));
+        if(hits2.length===1) return hits2[0];
+      }
+      // full first name
+      const exact=MASTER_NAMES.find(n=>n.split()[0].toLowerCase()===fn&&n.split().pop().toLowerCase()===ln);
+      if(exact) return exact;
+      // reversed last.first
+      const rev=MASTER_NAMES.find(n=>n.split().pop().toLowerCase()===fn&&n.split()[0].toLowerCase()===ln);
+      if(rev) return rev;
+      // starts-with fuzzy
+      if(fn.length>=3&&ln.length>=3){
+        const fz=MASTER_NAMES.filter(n=>n.split()[0].toLowerCase().startsWith(fn)&&n.split().pop().toLowerCase().startsWith(ln));
+        if(fz.length===1) return fz[0];
+        const rfz=MASTER_NAMES.filter(n=>n.split().pop().toLowerCase().startsWith(fn)&&n.split()[0].toLowerCase().startsWith(ln));
+        if(rfz.length===1) return rfz[0];
+      }
+    }
+  }
+  // 2b. Concatenated firstlast: rajeevjain → Rajeev Jain
+  for(const n of MASTER_NAMES){
+    const np=n.split(' ');
+    const fn=np[0].toLowerCase(), ln=np[np.length-1].toLowerCase();
+    if(fn.length>=4&&ln.length>=3&&(prefix===fn+ln||prefix===ln+fn)) return n;
+  }
+  // 2c. Initial+lastname: sknepp → Sylvia Knepp
+  if(prefix.length>=4){
+    const init=prefix[0], rest=prefix.slice(1);
+    if(rest.length>=3){
+      const hits=MASTER_NAMES.filter(n=>n.split()[0].toLowerCase().startsWith(init)&&n.split().pop().toLowerCase()===rest);
+      if(hits.length===1) return hits[0];
+      if(rest.length>=5){
+        const hits2=MASTER_NAMES.filter(n=>n.split()[0].toLowerCase().startsWith(init)&&n.split().pop().toLowerCase().startsWith(rest));
+        if(hits2.length===1) return hits2[0];
+      }
+    }
+  }
+  // 2d. Exact first or last name (unambiguous)
+  if(_masterByFirst[prefix]&&_masterByFirst[prefix].length===1) return _masterByFirst[prefix][0];
+  if(_masterByLast[prefix] &&_masterByLast[prefix].length===1)  return _masterByLast[prefix][0];
+
+  return null; // unknown — skip silently
+}
+
+// Returns UTC offset string for PST/PDT on a given YYYY-MM-DD string.
+// PDT (UTC-7) runs approx Mar–Nov; PST (UTC-8) Nov–Mar.
+function getPSTOffset(dateStr){
+  const m=new Date(dateStr+'T12:00:00Z').getUTCMonth();
+  return(m>=2&&m<=10)?'-07:00':'-08:00';
+}
+
+function parsePause(txt){
+  pausedSet=new Set();
+  pauseComments={};
+  const todayPST=new Date(new Date().toLocaleString('en-US',{timeZone:'America/Los_Angeles'}));
+  todayPST.setHours(0,0,0,0);
+
+  function parseComment(comment){
+    const result={geoRestrict:null, noExec:false, raw:comment};
+    if(/stop amer|only apac|assign only apac|do not assign amer/i.test(comment))
+      result.geoRestrict='APAC_ONLY';
+    if(/no exec|not exec/i.test(comment))
+      result.noExec=true;
+    return result;
+  }
+
+  for(const line of txt.split(/\r?\n/)){
+    const cols=csvRow(line);
+    if(cols.length<3) continue;
+
+    // Column A = comments/routing notes
+    const commentRaw=(cols[0]||'').replace(/"/g,'').trim();
+
+    // Find email column (cols 1–3)
+    let email='';
+    for(let ci=1;ci<=Math.min(3,cols.length-1);ci++){
+      const v=(cols[ci]||'').replace(/"/g,'').trim();
+      if(v.includes('@')){email=v;break;}
+      // also accept if it looks like a known prefix (no @ but in col 1)
+      if(ci===1&&v.length>3&&!/^\d+$/.test(v)&&!v.includes(' ')){email=v;break;}
+    }
+    if(!email) continue;
+
+    // Find end date: cols 6, 5, 4
+    let endStr='';
+    for(const ci of[6,5,4]){
+      const v=(cols[ci]||'').replace(/"/g,'').trim();
+      if(v&&!isNaN(Date.parse(v))){endStr=v;break;}
+    }
+    if(!endStr) continue;
+
+    // Parse end date as end-of-day PST (not local time — critical for IST users)
+    const pstOff=getPSTOffset(endStr);
+    const end=new Date(endStr+'T23:59:59'+pstOff);
+    if(end>=todayPST){
+      const name=emailToName(email);
+      if(name){
+        pausedSet.add(name);
+        if(commentRaw) pauseComments[name]=parseComment(commentRaw);
+      }
+    }
+  }
+}
+
+function csvRow(line){const res=[];let cur='';let inQ=false;for(const c of line){if(c==='"'){inQ=!inQ;}else if(c===','&&!inQ){res.push(cur);cur='';}else cur+=c;}res.push(cur);return res;}
+
+// ── NAME ALIASES ────────────────────────────────────────────────
+const NAME_ALIASES = {
+  'Jacqueline Rose':           ['Jackie Rose', 'Jacqueline Rose'],
+  'Sonia Notani':              ['Sonia Notani Notani', 'Sonia Notani'],
+  'Laura Taylor':              ['Laura Taylor (APAC)', 'Laura Taylor'],
+  'Rasagna Varma':             ['Buddharaju Rasagna Varma', 'Rasagna Varma'],
+  'Syed Ahsan Abbas Sharib':   ['Syed Ahsan Abbas', 'Syed Ahsan Abbas Sharib'],
+  'Swastica Sinha':            ['Swastica Sinha', 'Swastica Sinha'],
+};
+
+function resolveCount(base, name){
+  let count = base[name] || 0;
+  const aliases = NAME_ALIASES[name];
+  if(aliases){
+    for(const alias of aliases){
+      if(alias !== name && base[alias]) count = Math.max(count, base[alias]);
+    }
+  }
+  return count;
+}
+
+// ── FILE UPLOAD ────────────────────────────────────────────────
+document.getElementById('capFile').addEventListener('change',e=>readF(e.target.files[0],'cap'));
+document.getElementById('pauseFile').addEventListener('change',e=>readF(e.target.files[0],'pause'));
+document.getElementById('dailyFile').addEventListener('change',e=>readF(e.target.files[0],'daily'));
+document.getElementById('weeklyFile').addEventListener('change',e=>readF(e.target.files[0],'weekly'));
+
+function readF(file,type){
+  if(!file)return;
+  const r=new FileReader();
+  r.onload=ev=>{
+    const raw=ev.target.result;
+    const nulls=(raw.slice(0,300).match(/\u0000/g)||[]).length;
+    if(nulls>20){
+      const r2=new FileReader();
+      r2.onload=ev2=>handleText(ev2.target.result.replace(/^\uFEFF/,''),type,file.name);
+      r2.readAsText(file,'UTF-16LE');
+    } else handleText(raw.replace(/^\uFEFF/,''),type,file.name);
+  };
+  r.readAsText(file,'UTF-8');
+}
+
+function handleText(txt,type,fname){
+  txt=txt.replace(/\u0000/g,'');
+  try{
+    if(type==='cap'){parseCapacity(txt);mark('ci','cs',fname);loaded.cap=true;}
+    else if(type==='pause'){parsePause(txt);mark('pi','ps',fname);loaded.pause=true;}
+    else if(type==='daily'){parseSingleTracker(txt,'daily');mark('dti','dts',fname);loaded.daily=true;}
+    else if(type==='weekly'){parseSingleTracker(txt,'weekly');mark('wti','wts',fname);loaded.weekly=true;}
+  }catch(e){console.error(type,e);}
+  document.getElementById('processBtn').disabled=!(loaded.cap&&loaded.pause&&loaded.daily&&loaded.weekly);
+}
+
+function mark(iid,sid,fname){
+  document.getElementById(iid).classList.add('loaded');
+  document.getElementById(sid).textContent='✓ '+fname;
+}
+
+// ── PARSERS ────────────────────────────────────────────────────
+function parseCapacity(txt){
+  capMap={};
+  for(const line of txt.split(/\r?\n/)){
+    const cols=line.split('\t').map(c=>c.trim());
+    if(cols.length<10)continue;
+    const name=(cols[2]||cols[1]||'').trim();
+    const loadPct=parseFloat((cols[6]||'').replace('%','').replace(/[^\d.]/g,''))||0;
+    const maxCap=parseFloat((cols[8]||'').replace(/[^\d.]/g,''))||35;
+    const total=parseFloat((cols[11]||'').replace(/[^\d.]/g,''))||0;
+    if(name&&name.length>1&&!/em name|team assign/i.test(name))
+      capMap[name]={loadPct,maxCap,total};
+  }
+}
+
+function parseSingleTracker(txt, mode){
+  if(mode==='daily') dailyBase={};
+  if(mode==='weekly') weeklyBase={};
+  const lines=txt.split(/\r?\n/);
+  for(let i=0;i<lines.length;i++){
+    const raw=lines[i];
+    const clean=raw.replace(/"/g,'').trim();
+    if(!clean)continue;
+    if(/^(s\.?no|escalation manager|total|week|today|daily|weekly|summary|assignments from)/i.test(clean))continue;
+    const cols=(raw.includes('\t')?raw.split('\t'):raw.split(',')).map(c=>c.replace(/"/g,'').trim());
+    let name='',count=0;
+    if(cols.length>=3){
+      const sno=parseInt(cols[0]),nm=cols[1].trim(),cnt=parseInt(cols[2]);
+      if(!isNaN(sno)&&sno>0&&nm.length>2&&!isNaN(cnt)&&cnt>0&&cnt<50){name=nm;count=cnt;}
+    }
+    if(!name&&cols.length===2){
+      const nm=cols[0].trim(),cnt=parseInt(cols[1]);
+      if(nm.length>2&&isNaN(nm)&&!isNaN(cnt)&&cnt>0&&cnt<50){name=nm;count=cnt;}
+    }
+    if(name&&count>0){
+      if(mode==='daily') dailyBase[name]=(dailyBase[name]||0)+count;
+      if(mode==='weekly') weeklyBase[name]=(weeklyBase[name]||0)+count;
+    }
+  }
+}
+
+// ── COUNTS ─────────────────────────────────────────────────────
+function getD(name){return resolveCount(dailyBase,name)+session.filter(s=>s.em===name).length;}
+function getW(name){return resolveCount(weeklyBase,name)+session.filter(s=>s.em===name).length;}
+function getCap(name){if(capMap[name])return capMap[name];const lo=name.toLowerCase();for(const k of Object.keys(capMap)){if(k.toLowerCase()===lo)return capMap[k];}return null;}
+function isAtCap(name){const c=getCap(name);if(!c)return false;return c.loadPct>=100;}
+
+// Returns true if this EM is blocked by daily/weekly/load rules GIVEN a team context.
+// "everyone at 100%" safety-valve is handled at the pool-building level in getFallback/getRRPool.
+function elig(name){
+  if(pausedSet.has(name))return{ok:false,r:'Paused'};
+  const d=getD(name);if(d>=2)return{ok:false,r:`Daily cap (${d}/2)`};
+  const w=getW(name);if(w>=5)return{ok:false,r:`Weekly cap (${w}/5)`};
+  if(isAtCap(name)){const c=getCap(name);return{ok:false,r:`At/over capacity (${c.loadPct}%)`};}
+  return{ok:true};
+}
+function lc(pct){return pct<85?'green':pct<100?'yellow':'red';}
+
+// ── TERRITORY LOOKUP ────────────────────────────────────────────
+function findTerritoryEM(terr, team){
+  if(!terr)return null;
+  const tu=terr.toUpperCase().trim();
+  const map=team==='reds'?TERR_TO_EM_REDS:TERR_TO_EM_ESC;
+  for(const [key,em] of Object.entries(map)){
+    if(tu===key.toUpperCase()||tu.includes(key.toUpperCase())||key.toUpperCase().includes(tu))
+      return em;
+  }
+  const terrWords=tu.split(/\s+/);
+  for(const [key,em] of Object.entries(map)){
+    const keyWords=key.toUpperCase().split(/\s+/);
+    if(terrWords.some(w=>w.length>3&&keyWords.some(kw=>kw===w)))
+      return em;
+  }
+  return null;
+}
+
+// ── RECOMMENDATION ENGINE ───────────────────────────────────────
+//
+// ROUTING RULES (strict order, no rule skipped):
+//
+// RED ACCOUNTS team:
+//   1. GEO → Territory → lowest load (Green dot first)
+//   2. If territory EM paused/at cap/daily/weekly → step to lowest load in same GEO
+//   3. Red Accounts NEVER overflow to another GEO — stays within GEO always
+//   4. Round Robin within the available pool, sorted by:
+//        a. load% ascending (least loaded first) ← PRIMARY when all at 100%
+//        b. weekly count ascending
+//        c. daily count ascending
+//   5. When ALL non-paused GEO EMs are at 100% load:
+//        rank by load% (lowest %), then weekly, then daily — assign #1 in that rank
+//
+// ESCALATIONS team:
+//   1. GEO → Territory → lowest load (Green dot first)
+//   2. If territory EM blocked → lowest load in AMER GEO + Pooled
+//   3. If AMER exhausted → overflow to APAC (JAPAC)
+//   4. If APAC exhausted → overflow to EMEA
+//   5. When ALL geos exhausted (everyone at 100% load):
+//        rank across all geos by load% ascending, then weekly, then daily — assign #1
+//   6. Daily cap (2) and weekly cap (5) are hard limits until all EMs hit them,
+//        then they become guidelines and assignment goes to lowest load%
+//
+// In BOTH teams: paused EMs are ALWAYS excluded with no exceptions.
+
+function eligHard(name){
+  if(pausedSet.has(name)) return {ok:false, r:'Paused'};
+  return {ok:true};
+}
+
+// Canonical sort: when everyone is at/near cap, rank by load% first.
+// Normal operation: weekly → daily → load% (prefer EM with fewer assignments).
+// At-cap operation: load% → weekly → daily (prefer EM with most headroom).
+function sortPool(pool, allAtCap){
+  return pool.sort((a,b)=>{
+    const la=getCap(a.name)?.loadPct||0, lb=getCap(b.name)?.loadPct||0;
+    const wa=getW(a.name), wb=getW(b.name);
+    const da=getD(a.name), db=getD(b.name);
+    if(allAtCap){
+      // Primary: lowest load% (most capacity headroom)
+      if(la!==lb) return la-lb;
+      if(wa!==wb) return wa-wb;
+      return da-db;
+    } else {
+      // Primary: lowest weekly, then daily, then load%
+      if(wa!==wb) return wa-wb;
+      if(da!==db) return da-db;
+      return la-lb;
+    }
+  });
+}
+
+// True when every non-paused EM in pool is at >=100% load
+function allAtOrBeyondLoad(team, geo){
+  const pool=Object.entries(TM).filter(([n,i])=>
+    i.team===(team==='reds'?'Red Accounts':'Escalations')&&
+    !pausedSet.has(n)&&
+    (geo?i.geo===geo:true)
+  );
+  if(!pool.length) return false;
+  return pool.every(([n])=>isAtCap(n));
+}
+
+function getRecommendation(team, terr){
+  const terrEM = findTerritoryEM(terr, team);
+
+  if(terrEM && !skipped.has(terrEM)){
+    const isPaus = pausedSet.has(terrEM);
+    const d = getD(terrEM);
+    const w = getW(terrEM);
+    const atCap = isAtCap(terrEM);
+
+    // For Reds: check if everyone in this GEO is at 100% load
+    const terrGeo = TM[terrEM]?.geo || 'AMER';
+    const geoAllAtCap = team==='reds'
+      ? allAtOrBeyondLoad('reds', terrGeo)
+      : allAtOrBeyondLoad('escalations', null);
+
+    // Territory EM is assignable if: not paused, under daily, under weekly,
+    // AND either not at load cap OR everyone in GEO is at cap (load override)
+    const loadOk = !atCap || geoAllAtCap;
+
+    if(!isPaus && d<2 && w<5 && loadOk){
+      const lpct = getCap(terrEM)?.loadPct||0;
+      const loadNote = geoAllAtCap && atCap
+        ? ` (all ${terrGeo} EMs at 100%+ load — assigning to lowest loaded EM)` : '';
+      return{name:terrEM, reason:`${terrEM} is the aligned territory EM and is available (${d}/2d · ${w}/5w · ${lpct}% load)${loadNote}.`};
+    }
+
+    // Build block message
+    let blockMsg='';
+    if(isPaus)
+      blockMsg=`Territory EM (${terrEM}) is paused — routing to next available EM.`;
+    else if(atCap && !geoAllAtCap)
+      blockMsg=`Territory EM (${terrEM}) is at ${getCap(terrEM)?.loadPct||0}% load — routing to next available EM.`;
+    else if(d>=2)
+      blockMsg=`Territory EM (${terrEM}) has reached today's daily limit (${d}/2) — routing to next available EM.`;
+    else
+      blockMsg=`Territory EM (${terrEM}) has reached this week's limit (${w}/5) — routing to next available EM.`;
+
+    return getFallback(team, terr, blockMsg);
+  }
+
+  const noMatchMsg = terr
+    ? `No territory EM mapped for "${terr}" — routing to lowest available EM by load.`
+    : `No territory entered — routing to lowest available EM by load.`;
+  return getFallback(team, terr, noMatchMsg);
+}
+
+function getFallback(team, terr, prefixMsg){
+  const isReds = team==='reds';
+  const geoLabel={AMER:'AMER',JAPAC:'APAC',EMEA:'EMEA'};
+
+  // ────────────────────────────────────────────────────────────
+  // RED ACCOUNTS — stays within GEO, no overflow, ever
+  // ────────────────────────────────────────────────────────────
+  if(isReds){
+    // Determine GEO from territory input
+    let redGeo='AMER';
+    if(terr){
+      const tu=terr.toUpperCase();
+      if(/ANZ|ROASEAN|JAPAN|KOREA|TAIWAN|INDIA/.test(tu)) redGeo='JAPAC';
+      else if(/EMEA|UKI|CENTRAL|NORTH|SOUTH|FRANCE/.test(tu)) redGeo='EMEA';
+    }
+    const geoName = geoLabel[redGeo]||redGeo;
+    const geoAllAtCap = allAtOrBeyondLoad('reds', redGeo);
+
+    // Build candidate pool — always stays within redGeo
+    // Tier 1: not paused, not at cap, under daily AND weekly
+    let pool = Object.entries(TM)
+      .filter(([n,i])=>
+        i.team==='Red Accounts' && i.geo===redGeo &&
+        !pausedSet.has(n) && !skipped.has(n) &&
+        !isAtCap(n) && getD(n)<2 && getW(n)<5
+      ).map(([n,i])=>({name:n,...i}));
+
+    // Tier 2: all at 100% load → include at-cap EMs, but still require daily+weekly
+    if(!pool.length && geoAllAtCap){
+      pool = Object.entries(TM)
+        .filter(([n,i])=>
+          i.team==='Red Accounts' && i.geo===redGeo &&
+          !pausedSet.has(n) && !skipped.has(n) &&
+          getD(n)<2 && getW(n)<5
+        ).map(([n,i])=>({name:n,...i}));
+    }
+
+    // Tier 3: daily+weekly caps also hit — assign to lowest load% regardless
+    if(!pool.length){
+      pool = Object.entries(TM)
+        .filter(([n,i])=>
+          i.team==='Red Accounts' && i.geo===redGeo &&
+          !pausedSet.has(n) && !skipped.has(n)
+        ).map(([n,i])=>({name:n,...i}));
+    }
+
+    if(!pool.length)
+      return{name:null, reason:`${prefixMsg} All ${geoName} Red Accounts EMs are paused. No assignment possible.`};
+
+    // Sort: when all at 100% load, rank by load% first; otherwise weekly first
+    sortPool(pool, geoAllAtCap);
+
+    // Round-robin within sorted pool using per-GEO pointer
+    const ptr = (rrRedPointers[redGeo]||0) % pool.length;
+    const em  = pool[ptr];
+    const w=getW(em.name), d=getD(em.name), lpct=getCap(em.name)?.loadPct||0;
+    const c=getCap(em.name);
+
+    let note='';
+    if(geoAllAtCap)
+      note=` All ${geoName} Red Account EMs are at 100%+ load — ranked by load% (${lpct}%), assigning to least loaded.`;
+    else if(w>=5||d>=2)
+      note=` All preferred EMs at daily/weekly limits — assigning to EM with lowest overall count.`;
+
+    return{
+      name: em.name, geo: redGeo,
+      reason:`${prefixMsg}${note} Round-robin position ${ptr+1}/${pool.length} in ${geoName}: ${em.name} (${d}/2d · ${w}/5w · ${lpct}% load · ${c?.total??'—'} open of ${c?.maxCap??'—'} max).`
+    };
+
+  // ────────────────────────────────────────────────────────────
+  // ESCALATIONS — AMER → JAPAC → EMEA overflow when exhausted
+  // ────────────────────────────────────────────────────────────
+  } else {
+    const geoOrder=['AMER','JAPAC','EMEA'];
+    const escAllAtCap = allAtOrBeyondLoad('escalations', null);
+
+    // Each GEO: try fully available (not paused, not at cap, d<2, w<5)
+    // respecting pause comment geo restrictions (e.g. APAC_ONLY)
+    for(const geo of geoOrder){
+      const geoPool = Object.entries(TM)
+        .filter(([n,i])=>{
+          if(i.team!=='Escalations' || i.geo!==geo) return false;
+          if(pausedSet.has(n) || skipped.has(n))    return false;
+          if(isAtCap(n) || getD(n)>=2 || getW(n)>=5) return false;
+          // Respect geo restrictions from pause comments
+          const pc=pauseComments[n];
+          if(pc && pc.geoRestrict==='APAC_ONLY' && geo!=='JAPAC') return false;
+          return true;
+        })
+        .map(([n,i])=>({name:n,...i}));
+
+      if(geoPool.length){
+        sortPool(geoPool, false); // normal sort: weekly first
+        const em = geoPool[0];
+        const overflowNote =
+          geo==='JAPAC' ? ` AMER Escalations exhausted — overflowing to APAC.` :
+          geo==='EMEA'  ? ` AMER and APAC Escalations exhausted — overflowing to EMEA.` : '';
+        const d=getD(em.name),w=getW(em.name),lpct=getCap(em.name)?.loadPct||0;
+        return{name:em.name, reason:`${prefixMsg}${overflowNote} ${em.name} (${geoLabel[geo]}) — lowest weekly (${w}/5w · ${d}/2d · ${lpct}% load).`};
+      }
+    }
+
+    // All 3 geos have no fully-available EM.
+    // When all at 100% load: rank across ALL geos by load% ascending.
+    // Otherwise: rank by weekly → daily → load% and assign.
+    let globalPool = Object.entries(TM)
+      .filter(([n,i])=>i.team==='Escalations' && !pausedSet.has(n) && !skipped.has(n))
+      .map(([n,i])=>({name:n,...i}));
+
+    // If everyone skipped, restart
+    if(!globalPool.length){
+      globalPool = Object.entries(TM)
+        .filter(([n,i])=>i.team==='Escalations' && !pausedSet.has(n))
+        .map(([n,i])=>({name:n,...i}));
+    }
+
+    if(!globalPool.length)
+      return{name:null, reason:`${prefixMsg} All Escalations EMs are paused. No assignment possible.`};
+
+    sortPool(globalPool, escAllAtCap);
+
+    const em  = globalPool[0];
+    const geo = geoLabel[em.geo]||em.geo;
+    const w=getW(em.name), d=getD(em.name), lpct=getCap(em.name)?.loadPct||0;
+
+    let note='';
+    if(escAllAtCap)
+      note=` All Escalations EMs across AMER/APAC/EMEA are at 100%+ load — ranked by load% (${lpct}%), assigning to least loaded.`;
+    else
+      note=` All EMs are at daily/weekly guideline limits — assigning to EM with lowest overall load.`;
+
+    return{name:em.name, reason:`${prefixMsg}${note} ${em.name} (${geo}) (${w}/5w · ${d}/2d · ${lpct}% load).`};
+  }
+}
+
+
+// ── RENDER RECOMMENDATION CARD ──────────────────────────────────
+function renderRec(rec){
+  currentRec=rec;
+  const card=document.getElementById('recCard');
+  const label=document.getElementById('recLabel');
+  const name=document.getElementById('recName');
+  const sub=document.getElementById('recSub');
+  const reason=document.getElementById('recReason');
+  const stats=document.getElementById('recStats');
+  const barWrap=document.getElementById('recBarWrap');
+  const bar=document.getElementById('recBar');
+  const acts=document.getElementById('recActs');
+
+  if(!rec || !rec.name){
+    card.className='rec-card no-rec';
+    label.className='rec-label no-rec';
+    label.textContent='⏸ Assignment On Hold';
+    name.textContent='All EMs are paused or at today\'s daily cap of 2';
+    name.style.fontSize='13px'; name.style.color='var(--text-muted)';
+    sub.textContent='';
+    reason.style.display= rec?.reason ? 'block' : 'none';
+    reason.textContent= rec?.reason || '';
+    stats.style.display='none';
+    barWrap.style.display='none'; acts.style.display='none';
+    return;
+  }
+
+  const c=getCap(rec.name),lpct=c?.loadPct||0,col=lc(lpct);
+  const d=getD(rec.name),w=getW(rec.name);
+  const info=TM[rec.name];
+
+  card.className='rec-card';
+  label.className='rec-label';
+  label.textContent='⭐ Recommended EM';
+  name.textContent=rec.name;
+  name.style.fontSize='18px'; name.style.color='var(--text)';
+  sub.textContent=info?(info.geo==='JAPAC'?'APAC':info.geo)+' · '+info.terr.join(', '):'';
+  reason.textContent=rec.reason; reason.style.display='block';
+
+  stats.style.display='flex';
+  stats.innerHTML=`
+    <div class="rs"><div class="rsv ${d>=2?'danger':''}">${d}/2</div><div class="rsl">Today</div></div>
+    <div class="rs"><div class="rsv ${w>=5?'danger':w>=4?'warn':''}">${w}/5</div><div class="rsl">Weekly</div></div>
+    <div class="rs"><div class="rsv" style="font-size:14px">${c?.total??'—'}</div><div class="rsl">Open+Triage</div></div>
+    <div class="rs"><div class="rsv" style="font-size:14px">${c?.maxCap??'—'}</div><div class="rsl">Max Cap</div></div>
+    <div class="rs"><div class="rsv" style="font-size:14px">${lpct}%</div><div class="rsl">Load</div></div>`;
+
+  barWrap.style.display='block';
+  bar.className='rec-fill '+col;
+  bar.style.width=Math.min(lpct,100)+'%';
+
+  acts.style.display='flex';
+  document.getElementById('recConfBtn').onclick=()=>confirmRec(rec.name);
+}
+
+function confirmRec(name){
+  const acct=document.getElementById('accountName').value.trim()||'Unspecified';
+  const id=Date.now();
+  const isReds=TM[name]?.team==='Red Accounts';
+  session.push({id,em:name,account:acct});
+  if(isReds){
+    const geo=TM[name]?.geo||'AMER';
+    const pool=getRRPool(geo);
+    rrRedPointers[geo]=pool.length>1?((rrRedPointers[geo]||0)+1)%pool.length:0;
+  }
+  addLog(id,name,acct);
+  updateStats();
+  updateNextPanels();
+
+  qualified=false;
+  currentRec=null;
+  skipped=new Set();
+  lastTerr='';
+  // Reset form fields
+  document.getElementById('accountName').value='';
+  document.getElementById('terrInput').value='';
+  document.getElementById('teamSel').value='escalations';
+  document.getElementById('entitlement').value='';
+  document.getElementById('renewalYear').value='';
+  document.getElementById('attrition').value='';
+  document.getElementById('aov').value='';
+  document.getElementById('csgArea').value='';
+  document.getElementById('qualResult').style.display='none';
+  // Keep EM panels visible — just reset the rec section
+  document.getElementById('emView').style.display='none';
+  document.getElementById('lockedView').style.display='block';
+  document.getElementById('lockedView').innerHTML=`
+    <div style="font-size:22px;margin-bottom:6px">✅</div>
+    <div style="font-size:14px;font-weight:700;color:var(--green);margin-bottom:4px">${name} confirmed for ${acct}</div>
+    <div style="font-size:11px;color:var(--text-muted)">The EM panels above have been refreshed. Enter new case details and click <b>Qualify &amp; Recommend EM</b> for the next assignment.</div>`;
+  // Refresh EM panels to reflect updated counts
+  updateNextPanels();
+  updateStats();
+}
+
+function skipRec(){
+  if(!currentRec)return;
+  skipped.add(currentRec.name);
+  const team=document.getElementById('teamSel').value;
+  const newRec=getRecommendation(team,lastTerr);
+  renderRec(newRec);
+  updateStats();updateNextPanels();
+}
+
+// ── NEXT 10 PANELS ──────────────────────────────────────────────
+function getRRPool(geo){
+  geo=geo||'AMER';
+  const geoAllAtCap=allAtOrBeyondLoad('reds',geo);
+  const pool=Object.entries(TM)
+    .filter(([n,i])=>i.team==='Red Accounts'&&i.geo===geo&&!pausedSet.has(n)&&!skipped.has(n))
+    .map(([n,i])=>({name:n,...i}));
+  return sortPool(pool, geoAllAtCap);
+}
+
+function updateNextPanels(){
+  function loadCls(pct){return pct<85?'green':pct<100?'yellow':'red';}
+
+  // Sort Escalations panel by combined load score: load% + daily + weekly
+  // Least loaded at top (#1), highest at bottom. Paused always at the bottom.
+  // Score = loadPct + (daily/2 * 100) + (weekly/5 * 100)
+  // This gives a 0–300 scale: load% dominates, daily+weekly are tiebreakers.
+  function escScore(name){
+    if(pausedSet.has(name)) return 2;
+    if(isAtCap(name)||getD(name)>=2||getW(name)>=5) return 1;
+    return 0;
+  }
+  function escSortScore(name){
+    if(pausedSet.has(name)) return 99999; // always last
+    const lpct = getCap(name)?.loadPct||0;
+    const d    = getD(name);
+    const w    = getW(name);
+    // Weighted combined score: load% is primary, daily/weekly are secondary
+    return lpct + (d/2*100) + (w/5*100);
+  }
+  const escAll=Object.entries(TM)
+    .filter(([n,i])=>i.team==='Escalations')
+    .map(([n,i])=>({name:n,...i}))
+    .sort((a,b)=>escSortScore(a.name)-escSortScore(b.name))
+    .slice(0,10);
+
+  const firstEligEsc=escAll.findIndex(e=>escScore(e.name)===0);
+  document.getElementById('nextEsc').innerHTML=escAll.map((em,i)=>{
+    const sc=escScore(em.name);
+    const isActive=i===firstEligEsc&&sc===0;
+    const isInelig=pausedSet.has(em.name);
+    const c=getCap(em.name),lpct=c?.loadPct||0,cls=loadCls(lpct);
+    const d=getD(em.name),w=getW(em.name);
+    const overLimit=sc===1?` ⚠️ ${d}/2d · ${w}/5w`:'';
+    const blockReason=isInelig?'Paused':sc===1?`Daily ${d}/2 or Weekly ${w}/5 limit`:'';
+    return`<div class="next-item ${isActive?'active-next':(isInelig?'next-inelig':'')}">
+      <div class="ni-left">
+        <div class="ni-rank">#${i+1}${overLimit}</div>
+        <div class="ni-name">${em.name}</div>
+        <div class="ni-geo">${em.geo==='JAPAC'?'APAC':em.geo} · ${em.terr[0]}</div>
+        ${blockReason?`<div class="ni-blocked">⛔ ${blockReason}</div>`:''}
+      </div>
+      <div class="ni-right">
+        <span class="ni-load-chip ${cls}">${lpct}%</span>
+        <span class="ni-meta">${d}/2d · ${w}/5w</span>
+        <span class="ni-meta">${c?.total??'—'} open · max ${c?.maxCap??'—'}</span>
+      </div>
+    </div>`;
+  }).join('');
+
+  // Reds panel: show all Red Account EMs grouped by GEO, sorted by score
+  function redsScore(name){
+    if(pausedSet.has(name)) return 2;
+    if(isAtCap(name)||getD(name)>=2||getW(name)>=5) return 1;
+    return 0;
+  }
+  const redsAll=Object.entries(TM)
+    .filter(([n,i])=>i.team==='Red Accounts')
+    .map(([n,i])=>({name:n,...i}))
+    .sort((a,b)=>{
+      // Group by geo first: AMER, JAPAC, EMEA
+      const go=['AMER','JAPAC','EMEA'];
+      const ag=go.indexOf(a.geo),bg=go.indexOf(b.geo);
+      if(ag!==bg)return ag-bg;
+      const sa=redsScore(a.name),sb=redsScore(b.name);
+      if(sa!==sb)return sa-sb;
+      const wd=getW(a.name)-getW(b.name);
+      return wd!==0?wd:(getCap(a.name)?.loadPct||0)-(getCap(b.name)?.loadPct||0);
+    }).slice(0,15);
+
+  // Per-GEO RR active name
+  function getRRActive(geo){
+    const pool=redsAll.filter(e=>e.geo===geo&&redsScore(e.name)===0);
+    if(!pool.length)return null;
+    const ptr=(rrRedPointers[geo]||0)%pool.length;
+    return pool[ptr].name;
+  }
+
+  document.getElementById('nextReds').innerHTML=redsAll.map((em,i)=>{
+    const sc=redsScore(em.name);
+    const rrActive=getRRActive(em.geo);
+    const isActive=em.name===rrActive&&sc===0;
+    const isPaus=pausedSet.has(em.name);
+    const c=getCap(em.name),lpct=c?.loadPct||0,cls=loadCls(lpct);
+    const d=getD(em.name),w=getW(em.name);
+    const geoLbl=em.geo==='JAPAC'?'APAC':em.geo;
+    const overLimit=sc===1&&!isPaus?` ⚠️ ${lpct>=100?lpct+'% load':d+'/2d or '+w+'/5w'}`:'';
+    const blockReason=isPaus?'Paused':sc===1?(lpct>=100?'At/over max capacity ('+lpct+'%)':('Daily '+d+'/2 or Weekly '+w+'/5 limit')):'';
+    return`<div class="next-item ${isActive?'active-next':(isPaus?'next-inelig':'')}">
+      <div class="ni-left">
+        <div class="ni-rank">#${i+1} [${geoLbl}]${isActive?' · 🔄 Next RR':''}${overLimit}</div>
+        <div class="ni-name">${em.name}</div>
+        <div class="ni-geo">${geoLbl} · ${em.terr[0]}</div>
+        ${blockReason?`<div class="ni-blocked">⛔ ${blockReason}</div>`:''}
+      </div>
+      <div class="ni-right">
+        <span class="ni-load-chip ${cls}">${lpct}%</span>
+        <span class="ni-meta">${d}/2d · ${w}/5w</span>
+        <span class="ni-meta">${c?.total??'—'} open · max ${c?.maxCap??'—'}</span>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ── PROCESS ALL ─────────────────────────────────────────────────
+function processAll(){
+  document.getElementById('emptyState').style.display='none';
+  document.getElementById('mainContent').style.display='block';
+  renderPaused();
+  updateNextPanels();
+  updateStats();
+}
+
+function runQual(){
+  const entitlement=document.getElementById('entitlement').value;
+  const renewalYear=document.getElementById('renewalYear').value;
+  const attrition=parseFloat(document.getElementById('attrition').value)||0;
+  const aov=parseFloat(document.getElementById('aov').value)||0;
+  const csgArea=document.getElementById('csgArea').value;
+  const team=document.getElementById('teamSel').value;
+  lastTerr=document.getElementById('terrInput').value.trim();
+  currentTeam=team;
+  skipped=new Set();
+
+  const LOW_THRESHOLD_OUS=['EMEA_NORTH','EMEA_SOUTH','LATAM','SOUTH_ASIA'];
+  const resultEl=document.getElementById('qualResult');
+  resultEl.style.display='flex';
+  let msg='',pass=false;
+
+  if(team==='escalations'){
+    pass=true;
+    msg=attrition===0?'✅ Escalations — Attrition = $0':`✅ Escalations — Attrition: $${attrition.toLocaleString()}`;
+  } else {
+    if(attrition<=0){msg='❌ Red Accounts require Attrition > $0';}
+    else if(entitlement==='signature'){
+      if(!renewalYear){msg='⚠️ Select Renewal Year';}
+      else if(renewalYear==='29'){pass=aov>10000000;msg=pass?`✅ Red Accounts — Attrition: $${attrition.toLocaleString()}`:`❌ Signature FY29 needs AOV > $10M (got $${(aov/1e6).toFixed(1)}M)`;}
+      else if(renewalYear==='30+'){msg='❌ Renewal beyond FY29 not eligible';}
+      else{pass=true;msg=`✅ Red Accounts — Attrition: $${attrition.toLocaleString()}`;}
+    } else if(entitlement==='non-signature'){
+      if(!renewalYear){msg='⚠️ Select Renewal Year';}
+      else if(renewalYear==='29'||renewalYear==='30+'){msg='❌ Non-Signature only eligible through FY28';}
+      else{
+        const low=LOW_THRESHOLD_OUS.includes(csgArea);
+        const thr=low?100000:250000;
+        pass=attrition>=thr;
+        msg=pass?`✅ Red Accounts — Attrition: $${attrition.toLocaleString()}`:`❌ $${attrition.toLocaleString()} < $${thr.toLocaleString()} threshold`;
+      }
+    } else{msg='⚠️ Select Entitlement type';}
+  }
+
+  resultEl.className='qresult '+(pass?'valid':msg.startsWith('⚠')?'pending':'invalid');
+  resultEl.textContent=msg;
+
+  if(pass){
+    qualified=true;
+    document.getElementById('lockedView').style.display='none';
+    document.getElementById('emView').style.display='block';
+    const rec=getRecommendation(team,lastTerr);
+    renderRec(rec);
+    updateNextPanels();
+    updateStats();
+  } else {
+    qualified=false;
+    document.getElementById('lockedView').style.display='block';
+    document.getElementById('emView').style.display='none';
+  }
+}
+
+function renderPaused(){
+  const el=document.getElementById('pausedTags');
+  el.innerHTML=pausedSet.size?[...pausedSet].map(n=>`<span class="ptag">${n}</span>`).join(''):'<span class="nodata">None currently paused</span>';
+}
+
+// ── ACTIONS ─────────────────────────────────────────────────────
+function addLog(id,name,acct){
+  const el=document.getElementById('logEl');
+  const nd=el.querySelector('.nodata');if(nd)nd.remove();
+  const d=getD(name),w=getW(name);
+  const div=document.createElement('div');div.className='le';div.id='log_'+id;
+  div.innerHTML=`<div class="le-info"><div class="lem">${name}</div><div class="lacct">${acct}</div><div class="lcnt">${d}/2 today · ${w}/5 wk</div></div><div class="le-right"><span class="lbadge">✓</span><button class="le-del" onclick="removeSession(${id})" title="Undo">✕</button></div>`;
+  el.insertBefore(div,el.firstChild);
+}
+
+function removeSession(id){
+  const removed=session.find(s=>s.id===id);
+  session=session.filter(s=>s.id!==id);
+  const el=document.getElementById('log_'+id);if(el)el.remove();
+  const logEl=document.getElementById('logEl');
+  if(!logEl.children.length)logEl.innerHTML='<div class="nodata">No assignments yet</div>';
+  if(removed&&TM[removed.em]?.team==='Red Accounts'){
+    const geo=TM[removed.em]?.geo||'AMER';
+    rrRedPointers[geo]=Math.max(0,(rrRedPointers[geo]||1)-1);
+  }
+  updateStats();updateNextPanels();
+  if(qualified){
+    const team=document.getElementById('teamSel').value;
+    const newRec=getRecommendation(team,lastTerr);
+    renderRec(newRec);
+  }
+}
+
+function updateStats(){
+  const all=Object.keys(TM);
+  const avail=all.filter(n=>eligHard(n).ok&&!isAtCap(n)&&getD(n)<2&&getW(n)<5).length;
+  const paused=pausedSet.size;
+  const confirmed=session.length;
+  const capped=all.filter(n=>!pausedSet.has(n)&&(isAtCap(n)||getD(n)>=2||getW(n)>=5)).length;
+  document.getElementById('sG').textContent=avail;
+  document.getElementById('sP').textContent=paused;
+  document.getElementById('sC').textContent=confirmed;
+  document.getElementById('sK').textContent=capped;
+  const hdr=document.getElementById('hdrStats');
+  if(hdr&&(avail>0||paused>0)){
+    hdr.style.display='flex';
+    hdr.innerHTML=`<span style="color:rgba(255,255,255,.4)">|</span><span>🟢 ${avail} available</span><span style="color:rgba(255,255,255,.4)">·</span><span>⏸ ${paused} paused</span><span style="color:rgba(255,255,255,.4)">·</span><span>✅ ${confirmed} confirmed</span>`;
+  }
+}
+</script>
+</body>
+</html>
